@@ -92,7 +92,7 @@ int main(void){
         EndDrawing();
         //Fim da parte grafica(Desenho)
     }
-
+//teste
     CloseWindow();
 
 return 0;
