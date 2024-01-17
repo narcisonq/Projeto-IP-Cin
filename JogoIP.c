@@ -1,5 +1,6 @@
 #include "raylib.h"
 
+#teste
 //Definindo as dimensões da tela(FULL HD)
 #define WIDTHSCREEN 1920
 #define HEIGHTSCREEN 1080
