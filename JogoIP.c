@@ -3,7 +3,7 @@
 #teste
 //Definindo as dimensões da tela(FULL HD)
 #define WIDTHSCREEN 1920
-#define HEIGHTSCREEN 1080
+#define HEIGHTSCREEN 1020
 
 //Definindo os estados de tela
 typedef enum EstadosDeTela{Carregamento, Titulo, Gameplay, Final}EstadosDeTela;
