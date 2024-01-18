@@ -14,6 +14,7 @@ int main(void){
     //Inicializando a tela com as dimensões pre-processadas
     InitWindow(WIDTHSCREEN,HEIGHTSCREEN,"Bloody War");
 
+<<<<<<< HEAD
     //Posições dos textos que aparecem no menu do jogo
     Vector2 textPosition1 = {1160.f, 140.f};
     Vector2 textPosition2 = {1110.f, 600.f};
@@ -32,16 +33,21 @@ int main(void){
 
     //Processo para carregar as imagens do menu do jogo
     //Primeira Imagem
+=======
+>>>>>>> b2542182c0fc78b83258c65f53c4118bd270c9d5
     Image myImage = LoadImage("OIG.png");
     Texture2D texture = LoadTextureFromImage(myImage);
     UnloadImage(myImage);
 
+<<<<<<< HEAD
     //Segunda Imagem
     Image myImage2 = LoadImage("espadas.png");
     Texture2D texture2 = LoadTextureFromImage(myImage2);
     UnloadImage(myImage2);
 
     //Variavel que armazena o estado de tela atual
+=======
+>>>>>>> b2542182c0fc78b83258c65f53c4118bd270c9d5
     EstadosDeTela estadoTela = Carregamento;
 
     //Loop enquanto a tela não estiver pronta
@@ -107,6 +113,7 @@ int main(void){
                 //Tela de titulo
                 case Titulo:
                 {
+<<<<<<< HEAD
 
                     //Introduzindo as duas imagens(texturas)
                     DrawTexture(texture,0,0, WHITE);
@@ -122,6 +129,17 @@ int main(void){
                     DrawTextEx(font,"Options",textPosition3,75,2,RAYWHITE);
                     DrawTextEx(font,"Controls",textPosition4,75,2,RAYWHITE);
 
+=======
+                    ClearBackground(BLACK);
+                    DrawTexture(texture,0,0, WHITE);
+                    DrawRectangle(1100,70,780,350,RED);
+                    DrawRectangle(1150,100,680,290,MAROON);
+                    
+                    DrawText("Bloody War",1180,200,110,BLACK);
+                    DrawText("Press Enter for continue!",1120,600,50,RAYWHITE);
+                    DrawText("Options", 1350,670,50,RAYWHITE);
+                    DrawText("Controls",1340,740,50,RAYWHITE );
+>>>>>>> b2542182c0fc78b83258c65f53c4118bd270c9d5
                     
                 }break;
                 case Gameplay:
@@ -143,7 +161,10 @@ int main(void){
         EndDrawing();
         //Fim da parte grafica(Desenho)
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> b2542182c0fc78b83258c65f53c4118bd270c9d5
     CloseWindow();
 
 return 0;
