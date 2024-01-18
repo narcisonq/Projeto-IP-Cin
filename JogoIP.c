@@ -119,12 +119,20 @@ int main(void){
                     DrawRectangle(780,65,450,190,MAROON);
 
                     //Titulo e etc...
+<<<<<<< HEAD
                     DrawTextEx(font,"Bloody War",textPosition1,100,2,BLACK);
                     DrawTextEx(font,"Press Enter for continue!",textPosition2,40,2,WHITE);
                     DrawTextEx(font,"Options",textPosition3,40,2,RAYWHITE);
                     DrawTextEx(font,"Controls",textPosition4,40,2,RAYWHITE);
 
                     
+=======
+                    DrawTextEx(font,"Bloody War",textPosition1,150,2,BLACK);
+                    DrawTextEx(font,"Press Enter for continue!",textPosition2,75,2,RAYWHITE);
+                    DrawTextEx(font,"Options",textPosition3,75,2,RAYWHITE);
+                    DrawTextEx(font,"Controls",textPosition4,75,2,RAYWHITE);
+ 
+>>>>>>> 7e684fbab9a72cb7c3adcaf5fd1a514832069754
                 }break;
                 case Gameplay:
                 {
@@ -147,8 +155,11 @@ int main(void){
         EndDrawing();
         //Fim da parte grafica(Desenho)
     }
+<<<<<<< HEAD
 
     //Fechar janela
+=======
+>>>>>>> 7e684fbab9a72cb7c3adcaf5fd1a514832069754
     CloseWindow();
 
 return 0;
