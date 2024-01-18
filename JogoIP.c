@@ -1,10 +1,11 @@
+//Importação das bibliotecas
 #include "raylib.h"
 #include <stdlib.h>
 #include <stdio.h>
 
-//Definindo as dimensões da tela(Praticamente FULL HD 1920x1020)
-#define WIDTHSCREEN 1920
-#define HEIGHTSCREEN 1020
+//Definindo as dimensões da tela(Resolução HD 1280x720)
+#define WIDTHSCREEN 1280
+#define HEIGHTSCREEN 720
 
 //Definindo os estados de transição de tela
 typedef enum EstadosDeTela{Carregamento, Titulo, Gameplay, Final}EstadosDeTela;
@@ -14,12 +15,12 @@ int main(void){
     //Inicializando a tela com as dimensões pre-processadas
     InitWindow(WIDTHSCREEN,HEIGHTSCREEN,"Bloody War");
 
-<<<<<<< HEAD
     //Posições dos textos que aparecem no menu do jogo
-    Vector2 textPosition1 = {1160.f, 140.f};
-    Vector2 textPosition2 = {1110.f, 600.f};
-    Vector2 textPosition3 = {1340.f, 690.f};
-    Vector2 textPosition4 = {1320.f, 780.f};
+    //Totalizando quatro textos
+    Vector2 textPosition1 = {785.f, 130.f};
+    Vector2 textPosition2 = {793.f, 300.f};
+    Vector2 textPosition3 = {940.f, 470.f};
+    Vector2 textPosition4 = {930.f, 530.f};
 
     //Instalação da fonte do tipo ttf
     Font font = LoadFont("leadcoat.ttf");
@@ -33,21 +34,16 @@ int main(void){
 
     //Processo para carregar as imagens do menu do jogo
     //Primeira Imagem
-=======
->>>>>>> b2542182c0fc78b83258c65f53c4118bd270c9d5
-    Image myImage = LoadImage("OIG.png");
+    Image myImage = LoadImage("OIG_resized.png");
     Texture2D texture = LoadTextureFromImage(myImage);
     UnloadImage(myImage);
 
-<<<<<<< HEAD
     //Segunda Imagem
-    Image myImage2 = LoadImage("espadas.png");
+    Image myImage2 = LoadImage("Espadas_Duplas2.png");
     Texture2D texture2 = LoadTextureFromImage(myImage2);
     UnloadImage(myImage2);
 
     //Variavel que armazena o estado de tela atual
-=======
->>>>>>> b2542182c0fc78b83258c65f53c4118bd270c9d5
     EstadosDeTela estadoTela = Carregamento;
 
     //Loop enquanto a tela não estiver pronta
@@ -80,10 +76,10 @@ int main(void){
                     estadoTela = Gameplay;
 
             }break;
-            //Fecha o jogo se o usuario digitar ESC
+            //Fecha o jogo e vai para a tela final se o usuario digitar P
             case Gameplay:
             {
-                if(IsKeyPressed(KEY_ESCAPE))
+                if(IsKeyPressed(KEY_P))
                     estadoTela = Final;
             }break;
             //Volta para o menu se o usuario digitar Enter
@@ -106,53 +102,43 @@ int main(void){
                 //Tela de carregamento
                 case Carregamento:
                 {
-                    DrawText("Loading Screen", 20, 20, 100, RED);
-                    DrawText("This a loading screen. Wait for 2 seconds!",100,HEIGHTSCREEN/2,80, WHITE);
+                    DrawText("Loading Screen", 20, 20, 50, RED);
+                    DrawText("This a loading screen. Wait for 2 seconds!",100,HEIGHTSCREEN/2,50, WHITE);
 
                 }break;
                 //Tela de titulo
                 case Titulo:
                 {
-<<<<<<< HEAD
 
                     //Introduzindo as duas imagens(texturas)
                     DrawTexture(texture,0,0, WHITE);
-                    DrawTexture(texture2,1050,345, WHITE);
+                    DrawTexture(texture2,800,345, WHITE);
 
                     //Introduzindo os retangulos do titulo
-                    DrawRectangle(1100,40,780,320,RED);
-                    DrawRectangle(1150,70,680,270,MAROON);
+                    DrawRectangle(760,40,490,240,RED);
+                    DrawRectangle(780,65,450,190,MAROON);
 
                     //Titulo e etc...
-                    DrawTextEx(font,"Bloody War",textPosition1,150,2,BLACK);
-                    DrawTextEx(font,"Press Enter for continue!",textPosition2,75,2,RAYWHITE);
-                    DrawTextEx(font,"Options",textPosition3,75,2,RAYWHITE);
-                    DrawTextEx(font,"Controls",textPosition4,75,2,RAYWHITE);
+                    DrawTextEx(font,"Bloody War",textPosition1,100,2,BLACK);
+                    DrawTextEx(font,"Press Enter for continue!",textPosition2,40,2,WHITE);
+                    DrawTextEx(font,"Options",textPosition3,40,2,RAYWHITE);
+                    DrawTextEx(font,"Controls",textPosition4,40,2,RAYWHITE);
 
-=======
-                    ClearBackground(BLACK);
-                    DrawTexture(texture,0,0, WHITE);
-                    DrawRectangle(1100,70,780,350,RED);
-                    DrawRectangle(1150,100,680,290,MAROON);
-                    
-                    DrawText("Bloody War",1180,200,110,BLACK);
-                    DrawText("Press Enter for continue!",1120,600,50,RAYWHITE);
-                    DrawText("Options", 1350,670,50,RAYWHITE);
-                    DrawText("Controls",1340,740,50,RAYWHITE );
->>>>>>> b2542182c0fc78b83258c65f53c4118bd270c9d5
                     
                 }break;
                 case Gameplay:
                 {
                     //Logica do jogo aqui dentro
-                    DrawText("This is a Gameplay Screen",100,HEIGHTSCREEN/2,80,WHITE);
+                    //O que acontece no jogo sera introduzido aqui, que é a tela pos menu
+                    //Aqui a parte grafica do jogo acontece
+                    DrawText("Gameplay Screen is Here",100,HEIGHTSCREEN/2,60,WHITE);
 
     
                 }break;
                 case Final:
                 {
                     //Tela final aqui dentro
-                    DrawText("This is a Ending Screen",100,HEIGHTSCREEN/2,80,WHITE);
+                    DrawText("Ending Screen is Here",100,HEIGHTSCREEN/2,60,WHITE);
 
                 }break;
                 default: break;
@@ -161,10 +147,8 @@ int main(void){
         EndDrawing();
         //Fim da parte grafica(Desenho)
     }
-<<<<<<< HEAD
 
-=======
->>>>>>> b2542182c0fc78b83258c65f53c4118bd270c9d5
+    //Fechar janela
     CloseWindow();
 
 return 0;
