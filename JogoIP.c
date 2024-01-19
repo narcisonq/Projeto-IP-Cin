@@ -180,7 +180,7 @@ int main(void){
                             //else if(i == x) continuar para as outras opções... 
                         }
                     }
-                }
+                }break;
                 case Final:
                 {
                     //Tela final aqui dentro
