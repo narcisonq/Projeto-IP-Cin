@@ -19,6 +19,8 @@ typedef struct{
     Rectangle rect;
     int health;
     int attackDamage;
+    int jumpForce;
+    int velocity;
 
 }Character;
 
@@ -61,9 +63,13 @@ int main(void){
     int count = 120;
     int fpsAtual;
 
+    //Variaveis Utilizadas para criar efeito Gravitacional
+    int isJumping = 0;
+    int isDowning = 0;
+
     //Criação dos dois personagems iniciais
-    Character player = {{200, 350, 100, 250}, 100, 10};
-    Character enemy = {{1000, 350, 100, 250}, 100, 10};
+    Character player = {{200, 350, 100, 250}, 100, 10, 20,0};
+    Character enemy = {{1000, 350, 100, 250}, 100, 10, 20,0};
 
     //Posições dos textos que aparecem no menu do jogo
     //Totalizando ate momento atual, dois textos
@@ -107,12 +113,13 @@ int main(void){
     //Dentro do menu esta localiza a opção options
     //No options temos mais duas funcionalidades(por enquanto)
     int numItemsOptions = 2;
+    
     MenuItem itemsMenu[] = {
             //Aqui a logica é a seguinte cada opção na tela é tratado como um retangulo
             //Assim é possivel manipular o click do usuario
             {{793, 300, 400, 40}, "Press Enter to battle!", WHITE, RED},
-            {{930, 470, 200, 40}, "Options", WHITE, RED},
-            {{930, 530, 200, 40}, "Controls", WHITE, RED},
+            {{900, 470, 200, 40}, "Options", WHITE, RED},
+            {{900, 530, 200, 40}, "Controls", WHITE, RED},
     };
 
     MenuItem itemsOptions[] = {
@@ -190,12 +197,50 @@ int main(void){
                 if(IsKeyDown(KEY_A))
                     atualizarPersonagem(&player,-1,WIDTHSCREEN);
 
-                if(IsKeyPressed(KEY_SPACE)){
+                //Ataque corpo-a-corpo utlizando o botão M
+                //Posterioremente faremos a tela de controles
+                if(IsKeyPressed(KEY_M)){
 
                     if(CheckCollisionRecs(player.rect, enemy.rect)){
                         enemy.health -= player.attackDamage;
                     } 
                 }
+                
+                //Posteriormente sera aprimorada a mecanica gravitacional relativa aos pulos
+
+                //Se o botão de espaço for apertado e ainda não estiver no ato de pulo, o personagem pula
+                //Ganhando uma velocidade negativa para cima
+                if(IsKeyPressed(KEY_SPACE) && isJumping == 0){
+                    player.velocity = -player.jumpForce;
+                    isJumping = 1;
+                }
+                    
+                //Se não estiver caindo, sua velocidade estara aos poucos se dissipando
+                if(isDowning == 0){  
+                    player.velocity += 0.2f;
+                    player.rect.y += player.velocity;
+                }
+                //Se estiver caindo, sua velocidade recebe sentido contrario,para baixo
+                else{
+                    player.velocity -= 0.1f;
+                    player.rect.y += player.velocity;
+                }
+
+                //Quando a velocidade chegar a 0, sera aplicado um efeito contrario simulando um efeito garvitacional
+                if (isJumping == 1 && player.velocity >= 0.0f && isDowning == 0) {
+                    player.velocity = player.jumpForce;
+                    isDowning = 1;
+                }
+
+                //Quando chegar ao solo, tudo volta ao estado nulo, sem ação de pulo
+                if(player.rect.y >= 600 - player.rect.height){
+                    player.rect.y = 600 - player.rect.height;
+                    player.velocity = 0;
+                    isJumping = 0;
+                    isDowning = 0;
+                }
+                
+
             }break;  
             case Opcoes:
             {
