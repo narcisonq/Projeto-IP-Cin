@@ -10,17 +10,23 @@
 
 //Definindo os estagios de transição de tela
 //Posteriormente sera necesssario mais estados de tela
-//Por exemplo, sera futuramente sera adicionado uma tela de escolha de personagem
-typedef enum EstadosDeTela{Carregamento, Titulo, Gameplay, Opcoes, Final}EstadosDeTela;
+//Editaremos futuramente a sessão de personagem
+typedef enum EstadosDeTela{Carregamento, Titulo, Gameplay,Personagem,Opcoes, Final}EstadosDeTela;
 
 //Criação de um personagem com atributos de vida e de dano
 //Posteriormente sera necessario mais structs para diversificar os personagens
 typedef struct{
+
+    //Para definir o nome dos personagens
+    char name[20];
     Rectangle rect;
     int health;
     int attackDamage;
     int jumpForce;
     int velocity;
+
+    //posterioremente irei adicionar uma mecanica de tiro a longa distancia
+    int longShoot;
 
 }Character;
 
@@ -68,8 +74,8 @@ int main(void){
     int isDowning = 0;
 
     //Criação dos dois personagems iniciais
-    Character player = {{200, 350, 100, 250}, 100, 10, 20,0};
-    Character enemy = {{1000, 350, 100, 250}, 100, 10, 20,0};
+    Character player = {"Gladiador",{200, 350, 100, 250}, 100, 10, 20,0};
+    Character enemy = {"Guerrilheiro",{1000, 350, 100, 250}, 100, 10, 20,0};
 
     //Posições dos textos que aparecem no menu do jogo
     //Totalizando ate momento atual, dois textos
@@ -117,13 +123,13 @@ int main(void){
     MenuItem itemsMenu[] = {
             //Aqui a logica é a seguinte cada opção na tela é tratado como um retangulo
             //Assim é possivel manipular o click do usuario
-            {{793, 300, 400, 40}, "Press Enter to battle!", WHITE, RED},
+            {{793, 300, 400, 40}, "Click Here to battle!", WHITE, RED},
             {{900, 470, 200, 40}, "Options", WHITE, RED},
             {{900, 530, 200, 40}, "Controls", WHITE, RED},
     };
 
     MenuItem itemsOptions[] = {
-        //Mesma logica, so que as funcionalidades do options
+        //Mesma logica, so que as funcionalidades do optionss
         {{560, 300, 200, 40}, "Sound", WHITE, RED},
         {{560, 360, 200, 40}, "Back", WHITE, RED}
 
@@ -133,7 +139,6 @@ int main(void){
     while(!IsWindowReady()){
 
     }
-
     //Cravando 60 FPS
     SetTargetFPS(60);
 
@@ -324,6 +329,7 @@ int main(void){
                 }break;
                 case Gameplay:
                 {
+                    
                     //Cenario de fundo
                     DrawTexture(texture3,0,0,WHITE);
 
@@ -342,6 +348,11 @@ int main(void){
                     char numeroString[20];
                     sprintf(numeroString, "%d", count);
                     DrawText(numeroString, WIDTHSCREEN/2, 10, 20, BLACK);
+
+                    //Desenhe o nome dos personagems
+                    //O nome do personagem sera definido dinamicamente futuramente
+                    DrawText(player.name,20,70,40,MAROON);
+                    DrawText(enemy.name,1020,70,40,WHITE);
                 }break;
                 case Opcoes:
                 {
