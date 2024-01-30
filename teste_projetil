@@ -1,0 +1,57 @@
+#include "raylib.h"
+
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 450
+
+typedef struct {
+    Vector2 position;
+    Vector2 speed;
+    bool active;
+} Projectile;
+
+int main(void) {
+    // Inicialização da janela
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Projectile Example");
+
+    // Inicialização do projétil
+    Projectile projectile = {0};
+    projectile.position = (Vector2){100, SCREEN_HEIGHT / 2};
+    projectile.speed = (Vector2){10, 0};
+    projectile.active = false;
+
+    // Loop principal do jogo
+    while (!WindowShouldClose()) {
+        // Atualização
+        if (IsKeyPressed(KEY_SPACE)) {
+            // Disparar o projétil se a tecla de espaço for pressionada
+            projectile.active = true;
+            projectile.position = (Vector2){100, SCREEN_HEIGHT / 2}; // Posição inicial
+        }
+
+        // Atualizar a posição do projétil se estiver ativo
+        if (projectile.active) {
+            projectile.position.x += projectile.speed.x;
+
+            // Verificar se o projétil saiu da tela
+            if (projectile.position.x > SCREEN_WIDTH) {
+                projectile.active = false; // Desativar o projétil
+            }
+        }
+
+        // Desenho
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+
+        // Desenhar o projétil se estiver ativo
+        if (projectile.active) {
+            DrawCircleV(projectile.position, 5, RED);
+        }
+
+        EndDrawing();
+    }
+
+    // Fechar a janela
+    CloseWindow();
+
+    return 0;
+}
