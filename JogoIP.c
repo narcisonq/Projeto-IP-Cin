@@ -74,8 +74,8 @@ int main(void){
     int isDowning = 0;
 
     //Criação dos dois personagems iniciais
-    Character player = {"Gladiador",{200, 350, 100, 250}, 100, 10, 20,0};
-    Character enemy = {"Guerrilheiro",{1000, 350, 100, 250}, 100, 10, 20,0};
+    Character player = {"Bloodthirsty",{200, 350, 100, 250}, 100, 10, 20,0};
+    Character enemy =  {"Warrior",{1000, 350, 100, 250}, 100, 10, 20,0};
 
     //Posições dos textos que aparecem no menu do jogo
     //Totalizando ate momento atual, dois textos
@@ -211,13 +211,11 @@ int main(void){
                     } 
                 }
                 
-                //Posteriormente sera aprimorada a mecanica gravitacional relativa aos pulos
-
                 //Se o botão de espaço for apertado e ainda não estiver no ato de pulo, o personagem pula
                 //Ganhando uma velocidade negativa para cima
-                if(IsKeyPressed(KEY_SPACE) && isJumping == 0){
+                 if(IsKeyPressed(KEY_SPACE) && isJumping != 2){
                     player.velocity = -player.jumpForce;
-                    isJumping = 1;
+                    isJumping += 1;
                 }
                     
                 //Se não estiver caindo, sua velocidade estara aos poucos se dissipando
@@ -232,8 +230,8 @@ int main(void){
                 }
 
                 //Quando a velocidade chegar a 0, sera aplicado um efeito contrario simulando um efeito garvitacional
-                if (isJumping == 1 && player.velocity >= 0.0f && isDowning == 0) {
-                    player.velocity = player.jumpForce;
+                if (player.velocity >= 0.0f && isDowning == 0) {
+                    player.velocity = 2 * player.jumpForce;
                     isDowning = 1;
                 }
 
@@ -244,12 +242,11 @@ int main(void){
                     isJumping = 0;
                     isDowning = 0;
                 }
-                
+
 
             }break;  
             case Opcoes:
             {
-             
                 int temSom = 1; //Flag utilizado para verificar a situação atual do som
               
                 //itera sobre a quantidade de botões de options
