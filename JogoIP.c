@@ -1,55 +1,40 @@
-//Importação das bibliotecas utilizadas no Projeto
+//Importação das bibliotecas para o projeto
 #include "raylib.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
-//Definindo as dimensões da tela(Resolução HD 1280x720)
-//Estamos utilizando HD para maior compatibilidade com telas
+//Resoulução da tela de jogo(HD)
 #define WIDTHSCREEN 1280
 #define HEIGHTSCREEN 720
 
-//Definindo os estagios de transição de tela
-//Posteriormente sera necesssario mais estados de tela
-//Editaremos futuramente a sessão de personagem
-typedef enum EstadosDeTela{Carregamento, Titulo, Gameplay,Personagem,Opcoes, Final}EstadosDeTela;
+// Definição dos estados de transição de tela do jogo
+typedef enum EstadosDeTela {Carregamento,Titulo,Gameplay,Personagem,Opcoes,Final}EstadosDeTela;
 
-//Criação de um personagem com atributos de vida e de dano
-//Posteriormente sera necessario mais structs para diversificar os personagens
-typedef struct{
+// Estrutura para os personagens com suas caracteristicas
+typedef struct {
 
-    //Para definir o nome dos personagens
     char name[20];
     Rectangle rect;
     int health;
     int attackDamage;
     int jumpForce;
     int velocity;
+    int jumpSpeed;
+    int isJumping;
 
-    //posterioremente irei adicionar uma mecanica de tiro a longa distancia
-    int longShoot;
+} Character;
 
-}Character;
+// Estrutura para os projéteis com suas caracteristicas
+typedef struct
+{
+    Vector2 position;
+    Vector2 speed;
+    bool active;
 
-//Função feita para atualizar personagem e manter ele dentros dos limites da tela
-//Recebe o personagem, o sentido do movimento e a largura da tela
-void atualizarPersonagem(Character *character, int sentido, int screenWidth){
+} Projectile;
 
-    //Basicamente atualiza a posição do personagem
-    //5 é a constante que define a velocidade, um numero maior,mais velocidade
-    character->rect.x += sentido * 5;
-
-    //Isso impede que o personagem ultrapasse os limites da tela
-    if(character->rect.x < 0)
-        character->rect.x = 0;
-    if(character->rect.x + character->rect.width > WIDTHSCREEN)
-        character->rect.x = screenWidth - character->rect.width;
-}
-void desenharCharacter(Character character, Color color) {
-    // Desenha o personagem na tela
-    DrawRectangleRec(character.rect, color);
-}
-
-//Struct de opções do menu, vira a ser mais conveniente manipular utilizando como structs
+//Estrutura para os itens do menu
 typedef struct {
   
     Rectangle rect;
@@ -59,41 +44,88 @@ typedef struct {
   
 } MenuItem;
 
-int main(void){
+// Função para atualizar a posição do personagem e mantê-lo dentro dos limites da tela
+void atualizarPersonagem(Character *character, int sentido, int screenWidth){
+    //Atualiza a posição do personagem
+    character->rect.x += sentido * 5;
 
-    //Inicializando a tela com as dimensões pre-processadas
-    InitWindow(WIDTHSCREEN,HEIGHTSCREEN,"Bloody War");
+    //Controle de movimentação do personagem dentro dos limites da tela
+    if (character->rect.x < 0)
+        character->rect.x = 0;
+    if (character->rect.x + character->rect.width > WIDTHSCREEN)
+        character->rect.x = screenWidth - character->rect.width;
+}
 
-    //Variaveis utilizadas para simular um cronometro de tempo
+// Função para desenhar um personagem
+void desenharCharacter(Character character, Color color) {
+    DrawRectangleRec(character.rect, color);
+}
+
+// Função para disparar um projétil
+void dispararProjetil(Character character, Projectile *projetcile){
+
+    //Verifica se o projetil não esta ativo antes de dispara-lo
+    if (!projetcile->active) {
+        projetcile->position = (Vector2){character.rect.x, character.rect.y + 150};
+        projetcile->active = true;
+    }
+}
+void aplicarGravidade(Character *player, int *countJump) {
+    // Se o jogador estiver pulando atualize suas posições
+    if (player->isJumping) {
+        player->rect.y -= player->jumpSpeed;
+        player->jumpForce -= player->jumpSpeed/1.7;
+    
+        // Verifica se o pulo terminou
+        if (player->jumpForce <= 0) {
+            player->isJumping = false;
+        }
+    } else {
+        // Aplica a gravidade ao jogador
+        if((player->rect.y + player->rect.height) < 600) {
+            player->rect.y += 14; // Adicione sua própria lógica de gravidade aqui, se necessário
+        }
+        else
+            (*countJump) = 0;
+    }
+}
+
+int main(void) {
+
+    // Inicialização da janela
+    InitWindow(WIDTHSCREEN, HEIGHTSCREEN, "Bloody War");
+
+    // Variáveis de controle de tempo
     int counterFps = 0;
     int count = 120;
     int fpsAtual;
 
-    //Variaveis Utilizadas para criar efeito Gravitacional
-    int isJumping = 0;
-    int isDowning = 0;
+    int countJump = 0;
 
-    //Criação dos dois personagems iniciais
-    Character player = {"Bloodthirsty",{200, 350, 100, 250}, 100, 10, 20,0};
-    Character enemy =  {"Warrior",{1000, 350, 100, 250}, 100, 10, 20,0};
+    // Definição da quantidade de items por menu
+    int numItemsMenu = 3;
+    int numItemsOptions = 2;
 
-    //Posições dos textos que aparecem no menu do jogo
-    //Totalizando ate momento atual, dois textos
+    //Criação dos personagens
+    Character player = {"Bloodthirsty", {200, 350, 100, 250}, 100, 10, 150, 0,20,0};
+    Character enemy = {"Warrior", {1000, 350, 100, 250}, 100, 150, 20, 0,20,0};
+
+    //Definiçao do projetil do player
+    Projectile projetcile = {(Vector2){player.rect.x, player.rect.y + 150}, (Vector2){10, 0}, false};
+
+    // Posições dos textos do menu
     Vector2 textPosition1 = {785.f, 130.f};
-    Vector2 textPosition2 = {100,HEIGHTSCREEN/3};
+    Vector2 textPosition2 = {100, HEIGHTSCREEN / 3};
 
-    //Instalação da fonte do tipo ttf
+    // Instalação da fonte
     Font font = LoadFont("leadcoat.ttf");
-
-    //Verificando se não ocorreu nenhum problema na instalação da fonte
-    //Verificação semelhante a realizada em alocação dinamica
     if (font.texture.id == 0) {
         TraceLog(LOG_WARNING, "Font could not be loaded! Exiting...");
         CloseWindow();
         return -1;
     }
 
-    //Processo para carregar as imagens do menu do jogo
+    //Carregamento das imagens
     Image myImage = LoadImage("OIG_resized.png");
     Texture2D texture = LoadTextureFromImage(myImage);
     UnloadImage(myImage);
@@ -110,267 +142,229 @@ int main(void){
     Texture2D texture4 = LoadTextureFromImage(myImage4);
     UnloadImage(myImage4);
     
-    //Variavel que armazena o estado de tela atual
+    // Estado inicial da tela
     EstadosDeTela estadoTela = Carregamento;
   
-    //Definindo a quantidade de items do menu
-    int numItemsMenu = 3;
-  
-    //Dentro do menu esta localiza a opção options
-    //No options temos mais duas funcionalidades(por enquanto)
-    int numItemsOptions = 2;
-    
+    //Definindo os botões do menu
     MenuItem itemsMenu[] = {
-            //Aqui a logica é a seguinte cada opção na tela é tratado como um retangulo
-            //Assim é possivel manipular o click do usuario
-            {{793, 300, 400, 40}, "Click Here to battle!", WHITE, RED},
-            {{900, 470, 200, 40}, "Options", WHITE, RED},
-            {{900, 530, 200, 40}, "Controls", WHITE, RED},
+        {{793, 300, 400, 40}, "Click Here to battle!", WHITE, RED},
+        {{900, 470, 200, 40}, "Options", WHITE, RED},
+        {{900, 530, 200, 40}, "Controls", WHITE, RED},
     };
 
+    //Definindo os botões dentro do sub-menu "Options"
     MenuItem itemsOptions[] = {
-        //Mesma logica, so que as funcionalidades do optionss
         {{560, 300, 200, 40}, "Sound", WHITE, RED},
         {{560, 360, 200, 40}, "Back", WHITE, RED}
-
     };
 
-    //Loop enquanto a tela não estiver pronta
-    while(!IsWindowReady()){
+    //Loop enquanto a janela não estiver pronta
+    while (!IsWindowReady()){}
 
-    }
-    //Cravando 60 FPS
+    //Definindo 60 FPS
     SetTargetFPS(60);
 
-    //Loop principal onde o jogo vai rodar
-    while(!WindowShouldClose()){
+    while (!WindowShouldClose()) {
       
-        switch(estadoTela)
-        {
-            //Fica na tela de carregamento por dois segundo, ou seja, 120 Frames
+        switch(estadoTela) {
             case Carregamento:
             {
+                //Tela de carregamento por 2 segundos
                 counterFps++;
-                if(counterFps > 120){
+                if (counterFps > 120) {
                     estadoTela = Titulo;
                     counterFps = 0;
                 } 
-            }break;
-            //Entra no jogo se o usuario digitar Enter
+            } break;
             case Titulo:
             {
-                //Estamos fazendo um loop para percorrer por todos os itens do Menu
-                for(int i = 0; i < numItemsMenu; i++)
-                {
-                    //Note que para cada item do menu esta sendo verificado por meio do if se o Mouse esta Encima do botão
-                    //Quando isso acontecer, o botão posteriormente mudara de coloração
-                    //Percebemos isso utilizando a função CheckColissionPointRec
-                    //Que basicamente verifica se um ponto esta sobre um retangulo(Nesse caso o ponto seria o mouse)
-                    if(CheckCollisionPointRec(GetMousePosition(), itemsMenu[i].rect)) {
-                        itemsMenu[i].rectColor = MAROON;
-                      
-                        //Se for verificado um clique, então ele mudara o seu estado de tela
-                        if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
-                          
-                            if(i == 0) estadoTela = Gameplay;
-                            else if(i == 1) estadoTela = Opcoes;
-                          
-                            //else if(i == x) continuar para as outras opções futuras... 
+                //Para todo item do menu 
+                for (int i = 0; i < numItemsMenu; i++){
+                    //Verifica se o usuario selecionou alguma opção
+                    if (CheckCollisionPointRec(GetMousePosition(), itemsMenu[i].rect)) {
+                        
+                        //Checa se o mouse esta encima do botão, se verdadeiro altera a cor para indicação
+                        if(GetMouseX() == itemsMenu[i].rect.x || GetMouseY() == itemsMenu[i].rect.y)
+                            itemsMenu[i].rectColor = MAROON;
+
+                        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                            if (i == 0) estadoTela = Gameplay;
+                            else if (i == 1) estadoTela = Opcoes;
                         }
                     }
                 }
-            }break;
-            //Fecha o jogo e vai para a tela final se o usuario digitar P
-            //Cronometro de 120 segundos
+            } break;
             case Gameplay:
             {
-                //Essa parte de baixo simula um cronometro
+                //Controle do cronometro
                 counterFps++;
-                if(counterFps == 120 || counterFps == fpsAtual + 60){
+                if (counterFps == 120 || counterFps == fpsAtual + 60) {
                     fpsAtual = counterFps;
                     count--;
                 }    
-                if(counterFps == 7200)
+                if (counterFps == 7200)
                     estadoTela = Final;
 
-                if(IsKeyPressed(KEY_P))
+                //Se apertar P fecha o jogo
+                if (IsKeyPressed(KEY_P))
                     estadoTela = Final;
 
-                //Atualização do personagem
-                if(IsKeyDown(KEY_D))
-                    atualizarPersonagem(&player,1,WIDTHSCREEN);
-                if(IsKeyDown(KEY_A))
-                    atualizarPersonagem(&player,-1,WIDTHSCREEN);
+                //Movimentação do personagem
+                if (IsKeyDown(KEY_D))
+                    atualizarPersonagem(&player, 1, WIDTHSCREEN);
+                if (IsKeyDown(KEY_A))
+                    atualizarPersonagem(&player, -1, WIDTHSCREEN);
 
-                //Ataque corpo-a-corpo utlizando o botão M
-                //Posterioremente faremos a tela de controles
-                if(IsKeyPressed(KEY_M)){
-
-                    if(CheckCollisionRecs(player.rect, enemy.rect)){
+                //Ataque do personagem
+                if (IsKeyPressed(KEY_M)) {
+                    if (CheckCollisionRecs(player.rect, enemy.rect)) {
                         enemy.health -= player.attackDamage;
                     } 
                 }
-                
-                //Se o botão de espaço for apertado e ainda não estiver no ato de pulo, o personagem pula
-                //Ganhando uma velocidade negativa para cima
-                 if(IsKeyPressed(KEY_SPACE) && isJumping != 2){
-                    player.velocity = -player.jumpForce;
-                    isJumping += 1;
-                }
-                    
-                //Se não estiver caindo, sua velocidade estara aos poucos se dissipando
-                if(isDowning == 0){  
-                    player.velocity += 0.2f;
-                    player.rect.y += player.velocity;
-                }
-                //Se estiver caindo, sua velocidade recebe sentido contrario,para baixo
-                else{
-                    player.velocity -= 0.1f;
-                    player.rect.y += player.velocity;
+
+                //Atualização da posição do projetil
+                if (IsKeyPressed(KEY_N)) {
+                    dispararProjetil(player, &projetcile);
                 }
 
-                //Quando a velocidade chegar a 0, sera aplicado um efeito contrario simulando um efeito garvitacional
-                if (player.velocity >= 0.0f && isDowning == 0) {
-                    player.velocity = 2 * player.jumpForce;
-                    isDowning = 1;
+                //Se o projetil estiver ativo, tera uma taxa de atualização da posição X
+                if (projetcile.active) {
+                    projetcile.position.x += projetcile.speed.x;
+
+                    //Se o projeto ultrapassar os limites da tela, ele deixa de ser ativo
+                    if (projetcile.position.x > WIDTHSCREEN){
+                        projetcile.active = false;
+                    }
+                    if(CheckCollisionCircleRec(projetcile.position,25,enemy.rect)){
+                        enemy.health -= player.attackDamage;
+                        projetcile.active = false;
+                    }
                 }
 
-                //Quando chegar ao solo, tudo volta ao estado nulo, sem ação de pulo
-                if(player.rect.y >= 600 - player.rect.height){
-                    player.rect.y = 600 - player.rect.height;
-                    player.velocity = 0;
-                    isJumping = 0;
-                    isDowning = 0;
+                if (IsKeyPressed(KEY_SPACE) && !player.isJumping && countJump < 2) {
+                    countJump += 1;
+                    player.isJumping = true;
+                    player.jumpForce = 150;
                 }
 
+                aplicarGravidade(&player, &countJump);
 
-            }break;  
+            } break;  
             case Opcoes:
             {
-                int temSom = 1; //Flag utilizado para verificar a situação atual do som
-              
-                //itera sobre a quantidade de botões de options
-                for(int i = 0; i < numItemsOptions; i++){
-                  
-                        //Utiliza a mesma logica para verificar a colisão do mouse com opção
-                        //Pegando a coordenada do mouse com GetMousePosition()
-                        if(CheckCollisionPointRec(GetMousePosition(), itemsOptions[i].rect)){
-                            //Novamente a alteração de cor quando mouse esta encima
+                int temSom = 1;
+                ///Percorrendo as subopções do options
+                for (int i = 0; i < numItemsOptions; i++){
+                    
+                    if (CheckCollisionPointRec(GetMousePosition(), itemsOptions[i].rect)) {
+
+                        //Checa se o mouse esta encima do botão, se verdadeiro altera a cor para indicação
+                        if(GetMouseX() == itemsOptions[i].rect.x || GetMouseY() == itemsOptions[i].rect.y)
                             itemsOptions[i].rectColor = MAROON;
-                         
-                            //Verifica o click
-                            if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
-                              //Se a opção for a de numero 0, então é o botão de som
-                                if(i == 0){ //Opção para o som
-                                  
-                                    //Se estiver ligado, desliga
-                                    if(temSom) {
-                                        SetMasterVolume(0.0);
-                                        temSom = 0;
-                                    }
-                                    //Se estiver desligado, liga
-                                    else {
-                                        SetMasterVolume(1.0);
-                                        temSom = 1;
-                                    }
+
+                        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
+                            //Configuração do som
+                            if (i == 0) {
+                                if (temSom) {
+                                    SetMasterVolume(0.0);
+                                    temSom = 0;
+                                } else {
+                                    SetMasterVolume(1.0);
+                                    temSom = 1;
                                 }
-                                //Se a opção for 1, então é back, volta para o menu
-                                else if(i == 1) estadoTela = Titulo; 
+                            } else if (i == 1) {
+                                estadoTela = Titulo; 
                             }
                         }
                     }
-            }break;
-            //Volta para o menu se o usuario digitar Enter
+                }
+            } break;
             case Final:
             {
-                if(IsKeyPressed(KEY_ENTER))
+                //Volta para o inicio quando se apertar enter na tela final
+                if (IsKeyPressed(KEY_ENTER))
                     estadoTela = Titulo;
-            }break;
-            default:break;
+            } break;
+            default: break;
               
         }
-        //Inicio da parte grafica(Desenho)
+        
         BeginDrawing();
-        //Definindo o fundo de cor preta
         ClearBackground(BLACK);
 
-            switch(estadoTela)
+        switch(estadoTela) {
+            case Carregamento:
             {
-                //Tela de carregamento
-                case Carregamento:
-                {
-                    DrawTexture(texture4,500,300,WHITE);
-                    DrawTextEx(font,"This a loading screen. Wait for 2 seconds",textPosition2,70,2,WHITE);
+                //Tela de esperapor 2 segundos
+                DrawTexture(texture4, 500, 300, WHITE);
+                DrawTextEx(font, "This a loading screen. Wait for 2 seconds", textPosition2, 70, 2, WHITE);
+            } break;
+            case Titulo:
+            {
+                //Desennhando as texturas
+                DrawTexture(texture, 0, 0, WHITE);
+                DrawTexture(texture2, 800, 345, WHITE);
 
-                }break;
-                //Tela de titulo
-                case Titulo:
-                {
-                    //Introduzindo as duas imagens(texturas)
-                    DrawTexture(texture,0,0, WHITE);
-                    DrawTexture(texture2,800,345, WHITE);
+                //Retangulos do titulo
+                DrawRectangle(760, 40, 490, 240, RED);
+                DrawRectangle(780, 65, 450, 190, MAROON);
 
-                    //Introduzindo os retangulos do titulo
-                    DrawRectangle(760,40,490,240,RED);
-                    DrawRectangle(780,65,450,190,MAROON);
+                //Desenhando o titulo
+                DrawTextEx(font, "Bloody War", textPosition1, 100, 2, BLACK);
 
-                    //Titulo do jogo
-                    DrawTextEx(font,"Bloody War",textPosition1,100,2,BLACK);
-                  
-                    //Opções
-                    for(int i = 0; i < numItemsMenu; i ++) { 
-                        DrawRectangleRec(itemsMenu[i].rect, itemsMenu[i].rectColor);
-                        DrawText(itemsMenu[i].text, (int)(itemsMenu[i].rect.x + itemsMenu[i].rect.width / 2 - MeasureText(itemsMenu[i].text, 20) / 2), (int)(itemsMenu[i].rect.y + itemsMenu[i].rect.height / 2 - 10), 20, itemsMenu[i].textColor);
-                    }
+                for (int i = 0; i < numItemsMenu; i++) { 
+                    DrawRectangleRec(itemsMenu[i].rect, itemsMenu[i].rectColor);
+                    DrawText(itemsMenu[i].text, (int)(itemsMenu[i].rect.x + itemsMenu[i].rect.width / 2 - MeasureText(itemsMenu[i].text, 20) / 2), (int)(itemsMenu[i].rect.y + itemsMenu[i].rect.height / 2 - 10), 20, itemsMenu[i].textColor);
+                }
+            } break;
+            case Gameplay:
+            {
+                //Textura de fundo
+                DrawTexture(texture3, 0, 0, WHITE);
 
-                }break;
-                case Gameplay:
-                {
-                    
-                    //Cenario de fundo
-                    DrawTexture(texture3,0,0,WHITE);
+                //Desenhando os personagens do game
+                desenharCharacter(player, BLUE);
+                desenharCharacter(enemy, GREEN);
 
-                    //Players
-                    desenharCharacter(player,BLUE);
-                    desenharCharacter(enemy,GREEN);
+                //Desenhando a base(piso) dos personagems
+                DrawRectangle(0, 600, WIDTHSCREEN, 120, BROWN);
 
-                    //Piso
-                    DrawRectangle(0,600,WIDTHSCREEN,120,BROWN);
-                    
-                    //barra de vida
-                    DrawRectangle(10,10,player.health * 2,20,WHITE);
-                    DrawRectangle(1080,10,enemy.health * 2,20,RED);
+                //Barra de vida dos personagens
+                DrawRectangle(10, 10, player.health * 2, 20, WHITE);
+                DrawRectangle(1080, 10, enemy.health * 2, 20, RED);
 
-                    //Cronometro
-                    char numeroString[20];
-                    sprintf(numeroString, "%d", count);
-                    DrawText(numeroString, WIDTHSCREEN/2, 10, 20, BLACK);
+                //Cronometro
+                char numeroString[20];
+                sprintf(numeroString, "%d", count);
+                DrawText(numeroString, WIDTHSCREEN / 2, 10, 20, BLACK);
 
-                    //Desenhe o nome dos personagems
-                    //O nome do personagem sera definido dinamicamente futuramente
-                    DrawText(player.name,20,70,40,MAROON);
-                    DrawText(enemy.name,1020,70,40,WHITE);
-                }break;
-                case Opcoes:
-                {
-                    for(int i = 0; i < numItemsOptions; i ++) { 
-                        DrawRectangleRec(itemsOptions[i].rect, itemsOptions[i].rectColor);
-                        DrawText(itemsOptions[i].text, (int)(itemsOptions[i].rect.x + itemsOptions[i].rect.width / 2 - MeasureText(itemsOptions[i].text, 20) / 2), (int)(itemsOptions[i].rect.y + itemsOptions[i].rect.height / 2 - 10), 20, itemsOptions[i].textColor);
-                    }
-                }break;
-                case Final:
-                {
-                    //Tela final aqui dentro
-                    DrawText("Ending Screen is Here",100,HEIGHTSCREEN/2,60,WHITE);
+                //Desenha os nomes dos personagens 
+                DrawText(player.name, 20, 70, 40, MAROON);
+                DrawText(enemy.name, 1020, 70, 40, WHITE);
 
-                }break;
-                default: break;
-            }
+                //Desenhando o projetil caso esteja ativo
+                if (projetcile.active == true) {
+                    DrawCircleV(projetcile.position, 25, RED);
+                }
+
+            } break;
+            case Opcoes:
+            {
+                for (int i = 0; i < numItemsOptions; i++) { 
+                    DrawRectangleRec(itemsOptions[i].rect, itemsOptions[i].rectColor);
+                    DrawText(itemsOptions[i].text, (int)(itemsOptions[i].rect.x + itemsOptions[i].rect.width / 2 - MeasureText(itemsOptions[i].text, 20) / 2), (int)(itemsOptions[i].rect.y + itemsOptions[i].rect.height / 2 - 10), 20, itemsOptions[i].textColor);
+                }
+            } break;
+            case Final:
+            {
+                //Tela final de jogo;
+                DrawText("Ending Screen is Here", 100, HEIGHTSCREEN / 2, 60, WHITE);
+
+            }break;
+            default: break;
+        }
         EndDrawing();
-        //Fim da parte grafica(Desenho)
     }
-    //Fechar janela
     CloseWindow();
-
-return 0;
+    return 0;
 }
