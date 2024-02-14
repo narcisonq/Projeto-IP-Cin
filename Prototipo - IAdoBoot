@@ -1,0 +1,96 @@
+#include "raylib.h"
+#include <math.h>
+
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 450
+
+typedef struct {
+    Vector2 position;
+    Vector2 velocity;
+    int health;
+    float speed;
+    float attackRange;
+} Enemy;
+
+typedef struct {
+    Vector2 position;
+    Vector2 velocity;
+    int health;
+    float speed;
+    float attackRange;
+    Rectangle hitbox;
+    bool isAttacking;
+} Player;
+
+void updateEnemyAI(Enemy *enemy, Player player) {
+    // Direção do vetor jogador-inimigo
+    Vector2 direction = Vector2Subtract(player.position, enemy->position);
+    float distance = Vector2Length(direction);
+
+    // Ataque se dentro do alcance
+    if (distance < enemy->attackRange) {
+        // Implemente lógica de ataque aqui
+    }
+
+    // Movimento em direção ao jogador
+    if (distance > enemy->attackRange) {
+        enemy->velocity = Vector2Scale(Vector2Normalize(direction), enemy->speed);
+        enemy->position = Vector2Add(enemy->position, enemy->velocity);
+    }
+}
+
+void updatePlayer(Player *player, Enemy enemy) {
+    // Movimento do jogador com teclas de seta
+    if (IsKeyDown(KEY_RIGHT)) player->position.x += player->speed;
+    if (IsKeyDown(KEY_LEFT)) player->position.x -= player->speed;
+    if (IsKeyDown(KEY_UP)) player->position.y -= player->speed;
+    if (IsKeyDown(KEY_DOWN)) player->position.y += player->speed;
+
+    // Detecção de colisão com inimigo
+    if (CheckCollisionRecs(player->hitbox, (Rectangle){enemy.position.x, enemy.position.y, 50, 50})) {
+        // Reduz a saúde do jogador
+        player->health -= 10;
+    }
+}
+
+int main(void) {
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Jogo de Luta");
+
+    Player player = {
+        .position = (Vector2){100, 200},
+        .velocity = (Vector2){0, 0},
+        .health = 100,
+        .speed = 4.0f,
+        .attackRange = 100,
+        .hitbox = (Rectangle){100, 200, 50, 50},
+        .isAttacking = false
+    };
+
+    Enemy enemy = {
+        .position = (Vector2){600, 200},
+        .velocity = (Vector2){0, 0},
+        .health = 100,
+        .speed = 2.0f,
+        .attackRange = 100
+    };
+
+    SetTargetFPS(60);
+
+    while (!WindowShouldClose()) {
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+
+        // Atualizações e renderizações do jogador e inimigo
+        updatePlayer(&player, enemy);
+        updateEnemyAI(&enemy, player);
+
+        DrawRectangleRec(player.hitbox, RED);
+        DrawRectangleRec((Rectangle){enemy.position.x, enemy.position.y, 50, 50}, BLUE);
+
+        EndDrawing();
+    }
+
+    CloseWindow();
+
+    return 0;
+}
