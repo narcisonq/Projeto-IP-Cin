@@ -9,9 +9,9 @@
 #define HEIGHTSCREEN 720
 
 // Definição dos estados de transição de tela do jogo
-typedef enum EstadosDeTela {Carregamento,Titulo,Gameplay,Personagem,Opcoes,Final}EstadosDeTela;
+typedef enum EstadosDeTela {Carregamento,Titulo,Gameplay,Personagem,Controles,Opcoes,Final}EstadosDeTela;
 
-// Estrutura para os personagens com suas caracteristicas
+// Estrutura para os personagens com suas respectivas caracteristicas
 typedef struct {
 
     char name[20];
@@ -95,25 +95,28 @@ int main(void) {
     // Inicialização da janela
     InitWindow(WIDTHSCREEN, HEIGHTSCREEN, "Bloody War");
 
-    // Variáveis de controle de tempo
+    // Variáveis para controlar o cronometro
     int counterFps = 0;
     int count = 120;
     int fpsAtual;
 
+    //Variaveis para controlar os pulos
     int countJump = 0;
+    int countJump2 = 0;
 
     // Definição da quantidade de items por menu
     int numItemsMenu = 3;
     int numItemsOptions = 2;
 
     //Criação dos personagens
-    Character player = {"Bloodthirsty", {200, 350, 100, 250}, 100, 10, 150, 0,20,0};
-    Character enemy = {"Warrior", {1000, 350, 100, 250}, 100, 150, 20, 0,20,0};
+    Character player = {"Bloodthirsty", {200, 350, 100, 250}, 100, 3, 150, 0,20,0};
+    Character enemy = {"Warrior", {1000, 350, 100, 250}, 100, 3, 20, 0,20,0};
 
-    //Definiçao do projetil do player
-    Projectile projetcile = {(Vector2){player.rect.x, player.rect.y + 150}, (Vector2){10, 0}, false};
+    //Definiçao do projetil do player e do enemy
+    Projectile projetcilePlayer = {(Vector2){player.rect.x, player.rect.y + 150}, (Vector2){10, 0}, false};
+    Projectile projetcileEnemy = {(Vector2){enemy.rect.x, enemy.rect.y + 150}, (Vector2){10, 0}, false};
 
-    // Posições dos textos do menu
+    //Posições dos textos do menu
     Vector2 textPosition1 = {785.f, 130.f};
     Vector2 textPosition2 = {100, HEIGHTSCREEN / 3};
 
@@ -187,9 +190,11 @@ int main(void) {
                         if(GetMouseX() == itemsMenu[i].rect.x || GetMouseY() == itemsMenu[i].rect.y)
                             itemsMenu[i].rectColor = MAROON;
 
+                        //Verifica se alguma opção da janela de titulo foi selecionada
                         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
                             if (i == 0) estadoTela = Gameplay;
                             else if (i == 1) estadoTela = Opcoes;
+                            else if(i == 2) estadoTela = Controles;
                         }
                     }
                 }
@@ -209,51 +214,96 @@ int main(void) {
                 if (IsKeyPressed(KEY_P))
                     estadoTela = Final;
 
-                //Movimentação do personagem
+                ////Controle do personagem 1////
+                //Movimentação do personagem principal
+
                 if (IsKeyDown(KEY_D))
                     atualizarPersonagem(&player, 1, WIDTHSCREEN);
                 if (IsKeyDown(KEY_A))
                     atualizarPersonagem(&player, -1, WIDTHSCREEN);
 
                 //Ataque do personagem
-                if (IsKeyPressed(KEY_M)) {
+                if (IsKeyPressed(KEY_C)) {
                     if (CheckCollisionRecs(player.rect, enemy.rect)) {
                         enemy.health -= player.attackDamage;
                     } 
                 }
 
                 //Atualização da posição do projetil
-                if (IsKeyPressed(KEY_N)) {
-                    dispararProjetil(player, &projetcile);
+                if (IsKeyPressed(KEY_X)) {
+                    dispararProjetil(player, &projetcilePlayer);
                 }
 
                 //Se o projetil estiver ativo, tera uma taxa de atualização da posição X
-                if (projetcile.active) {
-                    projetcile.position.x += projetcile.speed.x;
+                if (projetcilePlayer.active) {
+                    projetcilePlayer.position.x += projetcilePlayer.speed.x;
 
                     //Se o projeto ultrapassar os limites da tela, ele deixa de ser ativo
-                    if (projetcile.position.x > WIDTHSCREEN){
-                        projetcile.active = false;
+                    if (projetcilePlayer.position.x > WIDTHSCREEN){
+                        projetcilePlayer.active = false;
                     }
-                    if(CheckCollisionCircleRec(projetcile.position,25,enemy.rect)){
+                    if(CheckCollisionCircleRec(projetcilePlayer.position,25,enemy.rect)){
                         enemy.health -= player.attackDamage;
-                        projetcile.active = false;
+                        projetcilePlayer.active = false;
                     }
                 }
 
-                if (IsKeyPressed(KEY_SPACE) && !player.isJumping && countJump < 2) {
+                if (IsKeyPressed(KEY_W) && !player.isJumping && countJump < 2) {
                     countJump += 1;
                     player.isJumping = true;
                     player.jumpForce = 150;
                 }
 
                 aplicarGravidade(&player, &countJump);
+                //Fim do controle do personagem 1//
+
+                ////Controle do personagem 2////
+                //Movimentação do segundo player
+                if (IsKeyDown(KEY_RIGHT))
+                    atualizarPersonagem(&enemy, 1, WIDTHSCREEN);
+                if (IsKeyDown(KEY_LEFT))
+                    atualizarPersonagem(&enemy, -1, WIDTHSCREEN);
+
+                //Ataque do personagem
+                if (IsKeyPressed(KEY_M)) {
+                    if (CheckCollisionRecs(enemy.rect, player.rect)) {
+                        player.health -= enemy.attackDamage;
+                    } 
+                }
+
+                //Atualização da posição do projetil
+                if (IsKeyPressed(KEY_N)) {
+                    dispararProjetil(enemy, &projetcileEnemy);
+                }
+
+                //Se o projetil estiver ativo, tera uma taxa de atualização da posição X
+                if (projetcileEnemy.active) {
+                    projetcileEnemy.position.x -= projetcileEnemy.speed.x;
+
+                    //Se o projeto ultrapassar os limites da tela, ele deixa de ser ativo
+                    if (projetcileEnemy.position.x < 0){
+                        projetcileEnemy.active = false;
+                    }
+                    if(CheckCollisionCircleRec(projetcileEnemy.position,25,player.rect)){
+                        player.health -= enemy.attackDamage;
+                        projetcileEnemy.active = false;
+                    }
+                }
+
+                if (IsKeyPressed(KEY_UP) && !enemy.isJumping && countJump2 < 2) {
+                    countJump2 += 1;
+                    enemy.isJumping = true;
+                    enemy.jumpForce = 150;
+                }
+
+                aplicarGravidade(&enemy, &countJump2);
+                //Fim do controle do personagem 2//
 
             } break;  
             case Opcoes:
             {
                 int temSom = 1;
-                ///Percorrendo as subopções do options
+                ///Percorrendo as sub-opções do options
                 for (int i = 0; i < numItemsOptions; i++){
                     
                     if (CheckCollisionPointRec(GetMousePosition(), itemsOptions[i].rect)) {
@@ -279,6 +329,13 @@ int main(void) {
                     }
                 }
             } break;
+            case Controles:
+            {
+                //P volta a tela de titulo
+                if (IsKeyPressed(KEY_P))
+                    estadoTela = Titulo;
+
+            }break;
             case Final:
             {
                 //Volta para o inicio quando se apertar enter na tela final
@@ -343,8 +400,11 @@ int main(void) {
                 DrawText(enemy.name, 1020, 70, 40, WHITE);
 
                 //Desenhando o projetil caso esteja ativo
-                if (projetcile.active == true) {
-                    DrawCircleV(projetcile.position, 25, RED);
+                if (projetcilePlayer.active == true) {
+                    DrawCircleV(projetcilePlayer.position, 25, RED);
+                }
+                if (projetcileEnemy.active == true) {
+                    DrawCircleV(projetcileEnemy.position, 25, RED);
                 }
 
             } break;
@@ -355,6 +415,22 @@ int main(void) {
                     DrawText(itemsOptions[i].text, (int)(itemsOptions[i].rect.x + itemsOptions[i].rect.width / 2 - MeasureText(itemsOptions[i].text, 20) / 2), (int)(itemsOptions[i].rect.y + itemsOptions[i].rect.height / 2 - 10), 20, itemsOptions[i].textColor);
                 }
             } break;
+            case Controles:
+            {
+                ClearBackground(BLACK);
+
+                //Descrevendo os controles basicos
+                DrawText("Player 1 Controls:",100,100,30,WHITE);
+                DrawText("D -> move to the right | A -> move to the left",100,150,30,WHITE);
+                DrawText("W -> to jump",100,200,30,WHITE);
+                DrawText("C -> hand-to-hand attack | X -> shoot projectile ",100,250,30,WHITE);
+
+                DrawText("Player 2 Controls:",100,350,30,GRAY);
+                DrawText("Right arrow -> move to the right | Left arrow -> move to the left",100,400,30,GRAY);
+                DrawText("Up arrow -> to jump",100,450,30,GRAY);
+                DrawText("M -> hand-to-hand attack | N -> shoot projectile ",100,500,30,GRAY);
+
+            }break;
             case Final:
             {
                 //Tela final de jogo;
