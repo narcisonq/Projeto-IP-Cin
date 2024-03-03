@@ -5,9 +5,11 @@
 
 #define WIDTHSCREEN 1280
 #define HEIGHTSCREEN 720
+#define FATOR_REDUCAO 0.15
+#define NUM_PERSONAGENS 2
 
 //Definição dos estados de transição de tela do jogo
-typedef enum EstadosDeTela {Carregamento, Titulo, Gameplay, Personagem, Controles, Opcoes, Final}EstadosDeTela;
+typedef enum EstadosDeTela {Carregamento, Titulo, Gameplay, Personagem, Mapa, Controles, Opcoes, Final}EstadosDeTela;
 
 //Estrutura para os personagens com suas respectivas caracteristicas
 typedef struct {
@@ -45,7 +47,6 @@ typedef struct {
     Color rectColor;
   
 } MenuItem;
-
 // Função para atualizar a posição do personagem e mantê-lo dentro dos limites da tela
 void atualizarPersonagem(Character *character, int sentido, int screenWidth){
     //Atualiza a posição do personagem
@@ -94,6 +95,7 @@ void aplicarGravidade(Character *Character, int *countJump) {
 }
 
 int main(void) {
+    
 
     InitWindow(WIDTHSCREEN, HEIGHTSCREEN, "Bloody War");
 
@@ -122,6 +124,12 @@ int main(void) {
     //Variaveis para controlar os pulos dos personagens
     int countJump = 0;
     int countJump2 = 0;
+    //variáveis de tempo de cooldown para cada personagem
+    int cooldownPlayer = 0;
+    int cooldownEnemy = 0;
+
+    int cooldownProjectilePlayer = 0;
+    int cooldownProjectileEnemy = 0;
 
     Character player = {{200, 300, 350, 350},{50 * countSprite + 24,88,50, 100},"Bloodthirsty",100, 3, 150, 0,20,0,false};
     Character enemy = {{900,300,350,350},{100 * countSprite2,130,100,136},"Warrior",100,2,150,0,20,0,false};
@@ -157,7 +165,7 @@ int main(void) {
     Texture2D texture2 = LoadTextureFromImage(myImage2);
     UnloadImage(myImage2);
 
-    Image myImage3 = LoadImage("street-fighter-japanese-signs-1280x720.png");
+    Image myImage3 = LoadImage("Mapa1.png");
     Texture2D texture3 = LoadTextureFromImage(myImage3);
     UnloadImage(myImage3);
 
@@ -180,8 +188,29 @@ int main(void) {
     Image myImage8 = LoadImage("ballred.png");
     Texture2D texture8 = LoadTextureFromImage(myImage8);
     UnloadImage(myImage8);
-    
-    
+
+    Image myImage9 = LoadImage("fundoEscolha.png");
+    Texture2D texture9 = LoadTextureFromImage(myImage9);
+    UnloadImage(myImage9);
+
+    Image myImage10 = LoadImage("gameOver.png");
+    Texture2D texture10 = LoadTextureFromImage(myImage10);
+    UnloadImage(myImage10);
+
+    Image myImage11 = LoadImage("escolhaMapa.png");
+    Texture2D texture11 = LoadTextureFromImage(myImage11);
+    UnloadImage(myImage11);
+
+    Image myImage12 = LoadImage("mapa2.png");
+    Texture2D texture12 = LoadTextureFromImage(myImage12);
+    UnloadImage(myImage12);
+
+    Image myImage13 = LoadImage("mapa3.png");
+    Texture2D texture13 = LoadTextureFromImage(myImage13);
+    UnloadImage(myImage13);
+
+    Texture2D texture14;
+
     // Estado inicial da tela
     EstadosDeTela estadoTela = Carregamento;
   
@@ -230,13 +259,45 @@ int main(void) {
 
                         //Verifica se alguma opção da janela de titulo foi selecionada
                         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                            if (i == 0) estadoTela = Gameplay;
+                            if (i == 0) estadoTela = Personagem;
                             else if (i == 1) estadoTela = Opcoes;
                             else if(i == 2) estadoTela = Controles;
                         }
                     }
                 }
             } break;
+            case Personagem:
+            {
+                if (IsKeyPressed(KEY_P))
+                    estadoTela = Mapa;
+            
+
+            } break;
+            case Mapa:
+            {
+                if (IsKeyPressed(KEY_P))
+                    estadoTela = Gameplay;
+
+                if(CheckCollisionPointRec(GetMousePosition(),(Rectangle){150,400,250,250})){
+                    if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
+                       estadoTela = Gameplay;
+                       texture14 = texture3;
+                    }
+                }
+                if(CheckCollisionPointRec(GetMousePosition(),(Rectangle){525,400,250,250})){
+                    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
+                        estadoTela = Gameplay;
+                        texture14 = texture12;
+                    }
+                }
+                if(CheckCollisionPointRec(GetMousePosition(),(Rectangle){925,400,250,250})){
+                    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
+                        estadoTela = Gameplay;
+                        texture14 = texture13;
+                    }
+                }
+
+            }break;
             case Gameplay:
             {
                 //Se apertar P fecha o jogo
@@ -267,15 +328,17 @@ int main(void) {
                     player.SourceRect = (Rectangle){50 * countSprite + 24,88, 50, 100};
                 }
 
-                if (IsKeyPressed(KEY_C) && player.isAttacking == false) {
+                if (IsKeyPressed(KEY_C) && player.isAttacking == false && cooldownPlayer < GetTime()) {
                 player.isAttacking = true;
                 timeAttack = GetTime() + 0.2; 
+                cooldownPlayer = GetTime() + 1;
                 }
                 if (player.isAttacking && GetTime() < timeAttack){
                 // Desenhe a animação de ataque
                 player.SourceRect = (Rectangle){325, 180, 70, 90};
                 if (CheckCollisionRecs(enemy.posRect, player.posRect)) {
                     enemy.health -= 1;
+                    
                 }
 
                 }
@@ -286,9 +349,10 @@ int main(void) {
                 }
                 
                 //Atualização da posição do projetil
-                if (IsKeyPressed(KEY_X)) {
+                if (IsKeyPressed(KEY_X) && cooldownProjectilePlayer < GetTime()) {
                     dispararProjetil(&projetcilePlayer);
                     TimeProjectile = GetTime() + 2.0;
+                    cooldownProjectilePlayer = GetTime() + 3;
                 }
 
                 //Se o projetil estiver ativo, tera uma taxa de atualização da posição X
@@ -311,8 +375,13 @@ int main(void) {
                         projetcilePlayer.active = false;
                         projetcilePlayer = (Projectile){player,{player.posRect.x + 150,player.posRect.y + 30,100,100 },{200,120,490,420} ,(Vector2){15, 0}, false};
                     }
-                }
-
+                    // Empurra o jogador para trás
+                    if (enemy.posRect.x < player.posRect.x) {
+                    player.posRect.x += 3; 
+                     } else {
+                    player.posRect.x -= 3;  
+                    }
+                    }
                 if (IsKeyPressed(KEY_W) && !player.isJumping && countJump < 2) {
                     countJump += 1;
                     player.isJumping = true;
@@ -335,9 +404,10 @@ int main(void) {
                     enemy.SourceRect = (Rectangle){100 * countSprite2,130,96,136};
                 }
 
-                if (IsKeyPressed(KEY_M) && enemy.isAttacking == false) {
+                if (IsKeyPressed(KEY_M) && enemy.isAttacking == false && cooldownEnemy < GetTime()) {
                 enemy.isAttacking = true;
                 timeAttack2 = GetTime() + 0.5; 
+                cooldownEnemy = GetTime() + 2;
                 }
                 if (enemy.isAttacking && GetTime() < timeAttack2) {
                 // Desenhe a animação de ataque
@@ -358,9 +428,10 @@ int main(void) {
                 }
                 
                 //Atualização da posição do projetil
-                if (IsKeyPressed(KEY_N)) {
+                if (IsKeyPressed(KEY_N) && cooldownProjectileEnemy < GetTime()) {
                     dispararProjetil(&projetcileEnemy);
                     TimeProjectile2 = GetTime() + 2.0;
+                    cooldownProjectileEnemy = GetTime() + 3;
                 }
                 //Se o projetil estiver ativo, tera uma taxa de atualização da posição X
                 if (projetcileEnemy.active){
@@ -388,10 +459,25 @@ int main(void) {
                     enemy.isJumping = true;
                     enemy.jumpForce = 150;
                 }
+                 if (CheckCollisionRecs(player.posRect, enemy.posRect)) {
+        
+                    player.velocity *= FATOR_REDUCAO;
+                    enemy.velocity *= FATOR_REDUCAO;
 
-                aplicarGravidade(&enemy, &countJump2);
-                //Fim do controle do personagem 2//*/
-
+                    // Ajustar as posições dos personagens para evitar sobreposição
+                    if (player.posRect.x < enemy.posRect.x) {
+                        player.posRect.x -= 1;
+                        enemy.posRect.x += 1;
+                    } else {
+                        player.posRect.x += 1;
+                        enemy.posRect.x -= 1;
+                    }
+                    if (player.health <= 0 || enemy.health <= 0) {
+                        estadoTela = Final;
+                    }
+                 }
+                 aplicarGravidade(&enemy, &countJump2);
+                
             } break;  
             case Opcoes:
             {
@@ -466,12 +552,36 @@ int main(void) {
                     DrawRectangleRec(itemsMenu[i].rect, itemsMenu[i].rectColor);
                     DrawText(itemsMenu[i].text, (int)(itemsMenu[i].rect.x + itemsMenu[i].rect.width / 2 - MeasureText(itemsMenu[i].text, 20) / 2), (int)(itemsMenu[i].rect.y + itemsMenu[i].rect.height / 2 - 10), 20, itemsMenu[i].textColor);
                 }
-            } break;
+            }break;
+            case Personagem:
+            {
+                
+                DrawTexture(texture9, 0, -200, WHITE);
+                DrawTextEx(font, "Escolha seu personagem", (Vector2){350, 100}, 60, 2, WHITE);
+
+                DrawText("Bloodthirsty",150,300,40,WHITE);
+                DrawText("Warrior",500,300,40,WHITE);
+                DrawText("Fighter",850,300,40,WHITE);
+
+                DrawTexturePro(texture5,(Rectangle){50 * 0 + 24,88,50, 100},(Rectangle){100, 400, 350, 350},(Vector2){0, 0}, 0, WHITE);
+                DrawTexturePro(texture6,(Rectangle){100 * 0,130,100,136},(Rectangle){450,400,350,350},(Vector2){0, 0}, 0, WHITE);
+
+            }break;
+            case Mapa:
+            {
+                DrawTexture(texture11, 0, 0, WHITE);
+                DrawTextEx(font, "Escolha seu Mapa", (Vector2){420, 100}, 64, 2, WHITE);
+
+                DrawTexturePro(texture3,(Rectangle){0,0,1280,633},(Rectangle){150,400,250,250},(Vector2){0, 0}, 0, WHITE);
+                DrawTexturePro(texture12,(Rectangle){0,0,1280,633},(Rectangle){525,400,250,250},(Vector2){0, 0}, 0, WHITE);
+                DrawTexturePro(texture13,(Rectangle){0,0,1284,619},(Rectangle){925,400,250,250},(Vector2){0, 0}, 0, WHITE);
+
+            }break;
             case Gameplay:
             {
                 
                 //Textura de fundo
-                DrawTexture(texture3, 0, 0, WHITE);
+                DrawTexture(texture14, 0, 0, WHITE);
                 desenharCharacter(&player,texture5);
                 desenharCharacter(&enemy,texture6);
                 
@@ -501,11 +611,14 @@ int main(void) {
                 if (projetcileEnemy.active == true) {
                    DrawTexturePro(texture8,projetcileEnemy.Position,projetcileEnemy.Source,(Vector2){0, 0}, 0, WHITE);
                 }
+                if (player.health <= 0 || enemy.health <= 0) {
+                    estadoTela = Final;
+                }
 
             } break;
             case Opcoes:
             {
-                for (int i = 0; i < numItemsOptions; i++) { 
+                for (int i = 0; i < numItemsOptions; i++){ 
                     DrawRectangleRec(itemsOptions[i].rect, itemsOptions[i].rectColor);
                     DrawText(itemsOptions[i].text, (int)(itemsOptions[i].rect.x + itemsOptions[i].rect.width / 2 - MeasureText(itemsOptions[i].text, 20) / 2), (int)(itemsOptions[i].rect.y + itemsOptions[i].rect.height / 2 - 10), 20, itemsOptions[i].textColor);
                 }
@@ -528,9 +641,12 @@ int main(void) {
             }break;
             case Final:
             {
-                //Tela final de jogo;
-                DrawText("Ending Screen is Here", 100, HEIGHTSCREEN / 2, 60, WHITE);
-
+                ClearBackground(BLACK);
+                DrawTexture(texture10,300,0, WHITE);
+                DrawText("Digite Enter To Back Menu",250,500,50,WHITE);
+                if (IsKeyPressed(KEY_ENTER))
+                estadoTela = Titulo;
+    
             }break;
             default: break;
         }
@@ -538,4 +654,4 @@ int main(void) {
     }
     CloseWindow();
     return 0;
-}
+} 
